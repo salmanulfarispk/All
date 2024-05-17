@@ -32,7 +32,7 @@ module.exports={
     getproductsBySearch:async(req,res)=>{
         
         let data=await Product.find(
-        {
+        {jhjh
           "$or":[
             {"name":{$regex:req.params.keys,"$options": "i" }},
             {"category":{$regex:req.params.keys,"$options": "i" }}

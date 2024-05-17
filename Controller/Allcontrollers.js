@@ -1,5 +1,6 @@
 const Product = require("../models/Productsschema")
-
+const initMB=require('messagebird')
+const messagebird = initMB(process.env.MESSAGEBIRD_API_KEY);
 
 
 
@@ -69,7 +70,28 @@ module.exports={
   });
 },
 
+  //verifyOtp
 
+  verifyotp:async(req,res)=>{
+    const { otpcode } = req.body;
+    const otpId = req.cookies.otpId; 
+  
+    if (!otpId) {
+      return res.status(400).send({ status: "failed", message: "OTP ID is missing" });
+    }
+  
+    messagebird.verify.verify(otpId, otpcode, (err, response) => {
+      if (err) {
+        // incorrect OTP
+        console.log("OTP Verification Error:", err);
+        res.status(200).send({ status: "failed", message: "Invalid OTP" });
+      } else {
+        console.log("OTP Verification Response:", response);
+        res.clearCookie('otpId'); 
+        res.status(200).send({ status: "success", message: "Login Success" });
+      }
+    });
+  }
 
 
 

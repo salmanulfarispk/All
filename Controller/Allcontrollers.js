@@ -47,9 +47,27 @@ module.exports={
     //otp verification
 
    SendOtp:async(req,res)=>{
+    const { phonenumber } = req.body;
+  const newPhoneNumber = "+91" + phonenumber;
+  const params = {
+    template: 'Your Login OTP is %token',
+    timeout: 300
+  };
 
-   }
-   
+  messagebird.verify.create(newPhoneNumber, params, (err, response) => {
+    if (err) {
+      
+      console.log("OTP Send Error:", err);
+      res.status(200).send({ status: "failed", message: "Unable to Send OTP" });
+    } else {
+      
+      console.log("OTP Send Response:", response);
+      res.cookie('otpId', response.id, { httpOnly: true, secure: false });
+      res.status(200).send({ status: "success", message: "OTP Sent Successfully" });
+    }
+  
+  });
+},
 
 
 

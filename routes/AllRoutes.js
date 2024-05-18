@@ -1,5 +1,5 @@
 const express=require("express");
-const { getproductsBySearch, addproducts } = require("../controller/Allcontrollers");
+const { getproductsBySearch, addproducts, SendOtp, verifyotp } = require("../Controller/Allcontrollers")
 const router=express.Router()
 
 
@@ -8,6 +8,9 @@ const router=express.Router()
 router 
 .post("/products",addproducts)
 .get("/search/:keys",getproductsBySearch)
+.post("/sendotp",SendOtp)
+.post("/verifyotp",verifyotp)
+
 
 
 

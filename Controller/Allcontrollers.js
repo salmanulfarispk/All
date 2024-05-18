@@ -107,7 +107,7 @@ module.exports={
       if (!oldUser) {
         return res.json({ status: "User Not Exists!!" });
       }
-      const secret = JWT_SECRET + oldUser.password;
+      const secret = JWT_SECRET + oldUser.password;  //concatenation of two strings
       const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, {
         expiresIn: "5m",
       });
@@ -144,7 +144,32 @@ module.exports={
       console.error(error);
        res.status(500).send({ message: 'Server error, please try again later.' });
      }
-   }
+   },
+
+      //
+
+   GetResetpass:async(req,res)=>{
+    const { id, token } = req.params;
+  try {
+    const oldUser = await User.findOne({ _id: id });
+    if (!oldUser) {
+      return res.json({ status: "User Not Exists!!" });
+    }
+    const secret = JWT_SECRET + oldUser.password;
+    const verify = jwt.verify(token, secret);
+    res.json({ email: verify.email,
+       status: "Not Verified" 
+      });
+
+  } catch (error) {
+    console.log(error);
+    res.json({ status: "Not Verified" });
+  }
+
+   },
+
+
+
 
 
 

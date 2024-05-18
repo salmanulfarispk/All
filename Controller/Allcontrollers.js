@@ -4,6 +4,7 @@ const messagebird = initMB(process.env.MESSAGEBIRD_API_KEY);
 const jwt = require("jsonwebtoken");
 var nodemailer = require("nodemailer");
 const User=require("../models/UserShema")
+const bcrypt=require("bcrypt")
 const { JWT_SECRET, EMAIL_USER, EMAIL_PASS } = process.env;
 
 
@@ -158,7 +159,7 @@ module.exports={
     const secret = JWT_SECRET + oldUser.password;
     const verify = jwt.verify(token, secret);
     res.json({ email: verify.email,
-       status: "Not Verified" 
+       status: "Not Verified" ,
       });
 
   } catch (error) {
@@ -167,6 +168,36 @@ module.exports={
   }
 
    },
+
+   postResetedpass:async(req,res)=>{
+    const { id, token } = req.params;
+    const { password } = req.body;
+  
+    const oldUser = await User.findOne({ _id: id });
+    if (!oldUser) {
+      return res.json({ status: "User Not Exists!!" });
+    }
+    const secret = JWT_SECRET + oldUser.password;
+    try {
+      const verify = jwt.verify(token, secret);
+      const encryptedPassword = await bcrypt.hash(password, 10);
+      await User.updateOne(
+        {
+          _id: id,
+        },
+        {
+          $set: {
+            password: encryptedPassword,
+          },
+        }
+      );
+      res.json({ email: verify.email, status: "verified" });
+
+    } catch (error) {
+      console.log(error);
+      res.json({ status: "Something Went Wrong" });
+    }
+   }
 
 
 

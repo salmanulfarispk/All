@@ -1,6 +1,10 @@
 const Product = require("../models/Productsschema")
 const initMB=require('messagebird')
 const messagebird = initMB(process.env.MESSAGEBIRD_API_KEY);
+const jwt = require("jsonwebtoken");
+var nodemailer = require("nodemailer");
+const User=require("../models/UserShema")
+const { JWT_SECRET, EMAIL_USER, EMAIL_PASS } = process.env;
 
 
 
@@ -94,6 +98,54 @@ module.exports={
   },
 
   
+    //forgot password using mail
+
+   ForgotPass:async(req,res)=>{
+     const {email}=req.body;
+     try {
+      const oldUser = await User.findOne({ email });
+      if (!oldUser) {
+        return res.json({ status: "User Not Exists!!" });
+      }
+      const secret = JWT_SECRET + oldUser.password;
+      const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, {
+        expiresIn: "5m",
+      });
+      const link = `http://localhost:5000/reset-password/${oldUser._id}/${token}`;  //url that contains the ui of resetting password
+  
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: EMAIL_USER,
+          pass: EMAIL_PASS,
+        },
+      });
+  
+      const mailOptions = {
+        from: EMAIL_USER,
+        to: email,
+        subject: "Password Reset",
+        text: `You requested a password reset. Please click the following link to reset your password: ${link}`,
+      };
+  
+      transporter.sendMail(mailOptions, (error, info)=> {
+        if (error) {
+          console.log(error);
+          return res.status(500).send({ message: 'Error sending email, please try again later.' });
+        } else {
+          console.log("Email sent: " + info.response);
+          return res.status(200).send({ message: 'Password reset link sent to your email.' });
+        }
+      });
+  
+      console.log(link);
+      
+     } catch (error) {
+      console.error(error);
+       res.status(500).send({ message: 'Server error, please try again later.' });
+     }
+   }
+
 
 
 

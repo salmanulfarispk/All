@@ -18,7 +18,8 @@
     "jsonwebtoken": "^9.0.2",
     "messagebird": "^4.0.1",
     "mongoose": "^8.3.5",
-    "nodemailer": "^6.9.13"
+    "nodemailer": "^6.9.13",
+    "stripe": "^15.7.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

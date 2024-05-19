@@ -1,7 +1,8 @@
 const express=require("express");
 const { getproductsBySearch, addproducts, SendOtp, verifyotp,
      ForgotPass, GetResetpass, postResetedpass, OtpMail, 
-     verify_mailOTP} = require("../Controller/Allcontrollers")
+     verify_mailOTP,
+     payment_checkout} = require("../Controller/Allcontrollers")
 const router=express.Router()
 
 
@@ -27,7 +28,9 @@ router
 
 
 
+//stripe
 
+.post('/create-checkout-session',payment_checkout)
 
 
 

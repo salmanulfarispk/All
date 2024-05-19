@@ -1,5 +1,4 @@
 const Product = require("../models/Productsschema")
-// const messagebird = require('messagebird')(process.env.MESSAGEBIRD_API_KEY);
 const messagebird = require('messagebird');
 const jwt = require("jsonwebtoken");
 var nodemailer = require("nodemailer");
@@ -11,8 +10,8 @@ const { sendMail } = require("../Helpers/sendMail");
 const { JWT_SECRET, EMAIL_USER, EMAIL_PASS } = process.env;
 const client = messagebird(process.env.MESSAGEBIRD_API_KEY);
 
-
-
+const YOUR_DOMAIN = 'http://localhost:5001';
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
          //just try to Learn
 
@@ -65,9 +64,8 @@ module.exports={
     timeout: 300
   };
   
-  client.verify.create(newPhoneNumber, params, (err, response) => {
+  client.verify.create(newPhoneNumber, params, (err, response) => {     //creates otp 
     if (err) {
-      
       console.log("OTP Send Error:", err);
       res.status(200).send({ status: "failed", message: "Unable to Send OTP" });
     } else {
@@ -293,6 +291,36 @@ module.exports={
    },
 
 
+
+   //stripe payments as a format...
+
+   payment_checkout : async (req, res) => {
+     try {
+        const session = await stripe.checkout.sessions.create({
+            line_items: [
+                {
+                 price_data:{
+                  currency: 'INR' ,   //or  usd
+                 product_data:{
+                  name: 'T-shirt',     // or may be add from the database
+                 },
+                 unit_amount: 2000,
+                },
+                  quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${YOUR_DOMAIN}/checkout-success`,
+            cancel_url: `${YOUR_DOMAIN}/cart`,
+        });
+
+        return res.status(200).json({ url: session.url })
+
+    } catch (error) {
+        console.error('Error during checkout:', error);
+        res.status(500).json({ error: 'An error occurred during payment checkout' });
+    }
+},
    
 
 

@@ -5,7 +5,9 @@ const jwt = require("jsonwebtoken");
 var nodemailer = require("nodemailer");
 const User=require("../models/UserShema")
 const Otp=require("../models/otpschema")
-const bcrypt=require("bcrypt")
+const { generateotp } =require("../Helpers/GenerateOTP")
+const bcrypt=require("bcrypt");
+const { sendMail } = require("../Helpers/sendMail");
 const { JWT_SECRET, EMAIL_USER, EMAIL_PASS } = process.env;
 
 
@@ -205,9 +207,53 @@ module.exports={
 
    //otpSend to email
 
-   Otpverification:async(req,res)=>{
+   OtpMail:async(req,res)=>{
+     try {
+    
+      const {email}=req.body;
 
-   }
+      const userData=await User.findOne({email});
+      if(!userData){
+        return res.status(400).json({
+          succes:false,
+          message: "Email doesnt exists"
+        })
+      }
+       
+      if(userData.is_verified ==1){
+        return res.status(400).json({
+          succes:false,
+          message: userData.email +"mail is already verified "
+        })
+      }
+
+   const g_otp= await generateotp();
+
+   const enter_otp= new  Otp({
+    user_id: userData._id,
+    otp: g_otp,
+   })
+
+   await enter_otp.save();
+
+   const msg = `<p> Hi <b>${userData.fname}</b>, </br> <h4>${g_otp}</h4> </p>`;
+
+    await sendMail(userData.email, "Otp verification ",msg)  //(to,subject,html)
+
+    return res.status(200).json({
+      succes:true,
+      msg: "Otp has been sends to your mail, plaese check!"
+    });
+      
+
+     } catch (error) {
+      return res.status(400).json({
+        success: false,
+        msg: error.message,
+      })
+     }
+
+   },
 
 
 

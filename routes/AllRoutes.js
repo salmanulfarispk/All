@@ -1,6 +1,7 @@
 const express=require("express");
 const { getproductsBySearch, addproducts, SendOtp, verifyotp,
-     ForgotPass, GetResetpass, postResetedpass, OtpMail } = require("../Controller/Allcontrollers")
+     ForgotPass, GetResetpass, postResetedpass, OtpMail, 
+     verify_mailOTP} = require("../Controller/Allcontrollers")
 const router=express.Router()
 
 
@@ -16,7 +17,7 @@ router
 
 //send otp to email
 .post("/send-otp",OtpMail)
-
+.post("/verify-otp",verify_mailOTP)
 
 
   //reset password through mail

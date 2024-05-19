@@ -1,6 +1,6 @@
 const Product = require("../models/Productsschema")
-const initMB=require('messagebird')
-const messagebird = initMB(process.env.MESSAGEBIRD_API_KEY);
+// const messagebird = require('messagebird')(process.env.MESSAGEBIRD_API_KEY);
+const messagebird = require('messagebird');
 const jwt = require("jsonwebtoken");
 var nodemailer = require("nodemailer");
 const User=require("../models/UserShema")
@@ -9,6 +9,8 @@ const { generateotp } =require("../Helpers/GenerateOTP")
 const bcrypt=require("bcrypt");
 const { sendMail } = require("../Helpers/sendMail");
 const { JWT_SECRET, EMAIL_USER, EMAIL_PASS } = process.env;
+const client = messagebird(process.env.MESSAGEBIRD_API_KEY);
+
 
 
 
@@ -62,8 +64,8 @@ module.exports={
     template: 'Your Login OTP is %token',
     timeout: 300
   };
-
-  messagebird.verify.create(newPhoneNumber, params, (err, response) => {
+  
+  client.verify.create(newPhoneNumber, params, (err, response) => {
     if (err) {
       
       console.log("OTP Send Error:", err);
@@ -88,7 +90,7 @@ module.exports={
       return res.status(400).send({ status: "failed", message: "OTP ID is missing" });
     }
   
-    messagebird.verify.verify(otpId, otpcode, (err, response) => {
+    client.verify.verify(otpId, otpcode, (err, response) => {
       if (err) {
         // incorrect OTP
         console.log("OTP Verification Error:", err);
@@ -220,7 +222,7 @@ module.exports={
         })
       }
        
-      if(userData.is_verified ==1){
+      if(userData.is_verified == 1){
         return res.status(400).json({
           succes:false,
           message: userData.email +"mail is already verified "
@@ -255,6 +257,43 @@ module.exports={
 
    },
 
+   //verifying otp send to email
+
+   verify_mailOTP: async(req,res)=>{
+    try {
+
+      const {user_id, otp}=req.body;
+      const otpData=await Otp.findOne({ user_id,otp })
+      if(!otpData){
+        res.status(400).json({
+          success: false,
+          msg: "you entered wrong Otp"
+        })
+      }
+       
+      await User.findByIdAndUpdate({_id: user_id},
+        {
+          $set:{
+            is_verified: 1
+          }
+        }
+      );
+
+      return res.status(200).json({
+        succes: true,
+        msg: "Account verified succesflly"
+      })
+      
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        msg: error.message,
+      })
+    }
+   },
+
+
+   
 
 
 
